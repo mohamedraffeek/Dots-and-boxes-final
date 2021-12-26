@@ -3,6 +3,15 @@
 
 //el headers bwzo el dnya 5ales fa sheltohom w ktbt kolo fel main
 
+//structs
+
+typedef struct{
+    int score;
+    char name[200];
+    int turn;
+} player;
+
+
 //function to print the grid initiated from grid();
 
 void print_grid(int rows, int cols, int grid[rows + 1][cols + 1]){
@@ -55,28 +64,61 @@ void grid(int rows, int cols){
     //game loop
     int x, y;
     int game_on = 1;
+    player player1, player2;
+    player1.turn = 1;
+    player2.turn = 0;
     while(game_on){
-        printf("\nDraw a line at row: ");
-        scanf("%d", &x);
-        printf("and column: ");
-        scanf("%d", &y);
-        //check if a line already exists
-        if(grid[x][y] == 124 || grid[x][y] == 196){
+        if(player1.turn){
+            printf("\nPlayer One's turn");
+            printf("\nDraw a line at row: ");
+            scanf("%d", &x);
+            printf("and column: ");
+            scanf("%d", &y);
+            //check if a line already exists
+            if(grid[x][y] == 124 || grid[x][y] == 196){
+                print_grid(rows, cols, grid);
+                printf("\nAlready occupied, please enter a valid input");
+                continue;
+            }
+            //check if the line to be printed is horizontal or vertical
+            if(x % 2 == 0 && y % 2 != 0 && x < rows && y < cols){
+                grid[x][y] = 196;
+            }else if(y % 2 == 0 && x % 2 != 0 && x < rows && y < cols){
+                grid[x][y] = 124;
+            }else{ //if the input is not suitable, the following executes
+                print_grid(rows, cols, grid);
+                printf("\nPlease, enter a valid input");
+                continue;
+            }
+            player1.turn = 0;
+            player2.turn = 1;
             print_grid(rows, cols, grid);
-            printf("\nAlready occupied, please enter a valid input");
-            continue;
-        }
-        //check if the line to be printed is horizontal or vertical
-        if(x % 2 == 0 && y % 2 != 0 && x < rows && y < cols){
-            grid[x][y] = 196;
-        }else if(y % 2 == 0 && x % 2 != 0 && x < rows && y < cols){
-            grid[x][y] = 124;
-        }else{ //if the input is not suitable, the following executes
+        }else if(player2.turn){
+            printf("\nPlayer Two's turn");
+            printf("\nDraw a line at row: ");
+            scanf("%d", &x);
+            printf("and column: ");
+            scanf("%d", &y);
+            //check if a line already exists
+            if(grid[x][y] == 124 || grid[x][y] == 196){
+                print_grid(rows, cols, grid);
+                printf("\nAlready occupied, please enter a valid input");
+                continue;
+            }
+            //check if the line to be printed is horizontal or vertical
+            if(x % 2 == 0 && y % 2 != 0 && x < rows && y < cols){
+                grid[x][y] = 196;
+            }else if(y % 2 == 0 && x % 2 != 0 && x < rows && y < cols){
+                grid[x][y] = 124;
+            }else{ //if the input is not suitable, the following executes
+                print_grid(rows, cols, grid);
+                printf("\nPlease, enter a valid input");
+                continue;
+            }
+            player1.turn = 1;
+            player2.turn = 0;
             print_grid(rows, cols, grid);
-            printf("\nPlease, enter a valid input");
-            continue;
         }
-        print_grid(rows, cols, grid);
     }
 }
 
