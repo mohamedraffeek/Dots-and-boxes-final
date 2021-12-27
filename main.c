@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <windows.h>
 
 //el headers bwzo el dnya 5ales fa sheltohom w ktbt kolo fel main
 
@@ -9,6 +10,7 @@ typedef struct{
     int score;
     char name[200];
     int turn;
+    char symbol;
 } player;
 
 
@@ -61,15 +63,55 @@ void grid(int rows, int cols){
     }
     //calling the grid printing function
     print_grid(rows, cols, grid);
+    //score calculations
+    int boxes_center_coordinates[(rows / 2) * (rows / 2)][2];
+    int boxes_sides_coordinates[4 * (rows / 2) * (rows / 2)][2];
+    int complete_box[(rows / 2) * (rows / 2)];
+    int center_counter = 0, side_counter = 0, boxes_counter = 0, side_index_counter = 0;
+    for(int i = 1; i < rows; i += 2){
+        for(int j = 1; j < rows; j += 2){
+            boxes_center_coordinates[center_counter][0] = i;
+            boxes_center_coordinates[center_counter][1] = j;
+            center_counter++;
+        }
+    }
+    for(int i = 1; i < rows; i += 2){
+        for(int j = 1; j < rows; j += 2){
+            for(int k = 0; k < 4; ++k){
+                boxes_sides_coordinates[side_counter][0] = boxes_center_coordinates[boxes_counter][0];
+                boxes_sides_coordinates[side_counter][1] = boxes_center_coordinates[boxes_counter][1];
+                side_counter++;
+                if(k == 0){
+                    boxes_sides_coordinates[side_index_counter++][0]--;
+                }else if(k == 1){
+                    boxes_sides_coordinates[side_index_counter++][1]--;
+                }else if(k == 2){
+                    boxes_sides_coordinates[side_index_counter++][0]++;
+                }else if(k == 3){
+                    boxes_sides_coordinates[side_index_counter++][1]++;
+                }
+            }
+            boxes_counter++;
+        }
+    }
+    for(int i = 0; i < ((rows / 2) * (rows / 2)); ++i){
+        complete_box[i] = 0;
+    }
     //game loop
     int x, y;
     int game_on = 1;
     player player1, player2;
+    player1.symbol = 'A';
+    player2.symbol = 'B';
     player1.turn = 1;
     player2.turn = 0;
+    player1.score = 0;
+    player2.score = 0;
+    int scored = 0;
     while(game_on){
         if(player1.turn){
             printf("\nPlayer One's turn");
+            printf("\nPlayer One's score: %d", player1.score);
             printf("\nDraw a line at row: ");
             scanf("%d", &x);
             printf("and column: ");
@@ -89,12 +131,39 @@ void grid(int rows, int cols){
                 print_grid(rows, cols, grid);
                 printf("\nPlease, enter a valid input");
                 continue;
+            }
+            for(int i = 0; i < (4 * (rows / 2) * (rows / 2)); ++i){
+                int side_increment = 0;
+                for(int j = 0; j < 2; ++j){
+                    if(x == boxes_sides_coordinates[i][j] && side_increment == 0){
+                        side_increment++;
+                    }else if(y == boxes_sides_coordinates[i][j] && side_increment == 1){
+                        side_increment++;
+                    }
+                }
+                if(side_increment == 2){
+                    complete_box[i / 4]++;
+                    if(complete_box[i / 4] == 4){
+                        player1.score++;
+                        scored = 1;
+                        grid[boxes_center_coordinates[i / 4][0]][boxes_center_coordinates[i / 4][1]] = player1.symbol;
+                    }
+                }
+            }
+            if(scored){
+                scored = 0;
+                Beep(750, 300);
+                player1.turn = 1;
+                player2.turn = 0;
+                goto s1;
             }
             player1.turn = 0;
             player2.turn = 1;
+            s1:
             print_grid(rows, cols, grid);
         }else if(player2.turn){
             printf("\nPlayer Two's turn");
+            printf("\nPlayer Two's score: %d", player2.score);
             printf("\nDraw a line at row: ");
             scanf("%d", &x);
             printf("and column: ");
@@ -115,9 +184,38 @@ void grid(int rows, int cols){
                 printf("\nPlease, enter a valid input");
                 continue;
             }
+            for(int i = 0; i < (4 * (rows / 2) * (rows / 2)); ++i){
+                int side_increment = 0;
+                for(int j = 0; j < 2; ++j){
+                    if(x == boxes_sides_coordinates[i][j] && side_increment == 0){
+                        side_increment++;
+                    }else if(y == boxes_sides_coordinates[i][j] && side_increment == 1){
+                        side_increment++;
+                    }
+                }
+                if(side_increment == 2){
+                    complete_box[i / 4]++;
+                    if(complete_box[i / 4] == 4){
+                        player2.score++;
+                        scored = 1;
+                        grid[boxes_center_coordinates[i / 4][0]][boxes_center_coordinates[i / 4][1]] = player2.symbol;
+                    }
+                }
+            }
+            if(scored){
+                scored = 0;
+                Beep(750, 300);
+                player1.turn = 0;
+                player2.turn = 1;
+                goto s2;
+            }
             player1.turn = 1;
             player2.turn = 0;
+            s2:
             print_grid(rows, cols, grid);
+        }
+        if(player1.score + player2.score == (rows / 2) * (rows / 2)){
+            game_on = 0;
         }
     }
 }
@@ -157,10 +255,12 @@ void difficulity(char difficulity_selection){
         case 1:
             system("cls");
             grid(5, 5);
+            printf("\nGame over!");
             break;
         case 2:
             system("cls");
             grid(11, 11);
+            printf("\nGame over!");
             break;
         default:
             wrong_selection();
