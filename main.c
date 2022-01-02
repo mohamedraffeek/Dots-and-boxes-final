@@ -107,7 +107,29 @@ void grid(int rows, int cols){
     player2.turn = 0;
     player1.score = 0;
     player2.score = 0;
-    int scored = 0;
+    //defining undo/redo struct
+    typedef struct{
+        int grid_state[rows + 1][rows + 1];
+        int score1;
+        int score2;
+        int turn1;
+        int turn2;
+        int complete_box_state[(rows / 2) * (rows / 2)];
+    } game_state;
+    game_state current_game_state[2*(rows/2)*(rows/2+1)];
+    current_game_state[0].score1 = player1.score;
+    current_game_state[0].score2 = player2.score;
+    current_game_state[0].turn1 = player1.turn;
+    current_game_state[0].turn2 = player2.turn;
+    for(int i = 0; i < rows + 1; ++i){
+        for(int j = 0; j < rows + 1; ++j){
+            current_game_state[0].grid_state[i][j] = grid[i][j];
+        }
+    }
+    for(int i = 0; i < ((rows / 2) * (rows / 2)); ++i){
+        current_game_state[0].complete_box_state[i] = complete_box[i];
+    }
+    int scored = 0, game_state_counter = 0, redoable = 0;
     while(game_on){
         if(player1.turn){
             printf("\nPlayer One's turn");
@@ -122,11 +144,65 @@ void grid(int rows, int cols){
                 printf("\nAlready occupied, please enter a valid input");
                 continue;
             }
+            //check if undo input is received
+            if(x == -1 && y == -1){
+                if(game_state_counter == 0){
+                    print_grid(rows, cols, grid);
+                    printf("\nNo previous plays to undo");
+                    continue;
+                }else{
+                    game_state_counter--;
+                    player1.score = current_game_state[game_state_counter].score1;
+                    player2.score = current_game_state[game_state_counter].score2;
+                    player1.turn = current_game_state[game_state_counter].turn1;
+                    player2.turn = current_game_state[game_state_counter].turn2;
+                    for(int i = 0; i < rows + 1; ++i){
+                        for(int j = 0; j < rows + 1; ++j){
+                            grid[i][j] = current_game_state[game_state_counter].grid_state[i][j];
+                        }
+                    }
+                    for(int i = 0; i < ((rows / 2) * (rows / 2)); ++i){
+                        complete_box[i] = current_game_state[game_state_counter].complete_box_state[i];
+                    }
+                    redoable++;
+                    print_grid(rows, cols, grid);
+                    continue;
+                }
+            }
+            //check if redo input is received
+            if(x == -2 && y == -2){
+                if(!redoable){
+                    print_grid(rows, cols, grid);
+                    printf("\nNo plays registered to redo");
+                    continue;
+                }else if(redoable){
+                    game_state_counter++;
+                    player1.score = current_game_state[game_state_counter].score1;
+                    player2.score = current_game_state[game_state_counter].score2;
+                    player1.turn = current_game_state[game_state_counter].turn1;
+                    player2.turn = current_game_state[game_state_counter].turn2;
+                    for(int i = 0; i < rows + 1; ++i){
+                        for(int j = 0; j < rows + 1; ++j){
+                            grid[i][j] = current_game_state[game_state_counter].grid_state[i][j];
+                        }
+                    }
+                    for(int i = 0; i < ((rows / 2) * (rows / 2)); ++i){
+                        complete_box[i] = current_game_state[game_state_counter].complete_box_state[i];
+                    }
+                    redoable--;
+                    print_grid(rows, cols, grid);
+                    continue;
+                }
+            }
             //check if the line to be printed is horizontal or vertical
             if(x % 2 == 0 && y % 2 != 0 && x < rows && y < cols){
                 grid[x][y] = 196;
+                game_state_counter++;
+                redoable = 0;
             }else if(y % 2 == 0 && x % 2 != 0 && x < rows && y < cols){
                 grid[x][y] = 124;
+                game_state_counter++;
+                redoable = 0;
             }else{ //if the input is not suitable, the following executes
                 print_grid(rows, cols, grid);
                 printf("\nPlease, enter a valid input");
@@ -160,6 +236,18 @@ void grid(int rows, int cols){
             player1.turn = 0;
             player2.turn = 1;
             s1:
+            current_game_state[game_state_counter].score1 = player1.score;
+            current_game_state[game_state_counter].score2 = player2.score;
+            current_game_state[game_state_counter].turn1 = player1.turn;
+            current_game_state[game_state_counter].turn2 = player2.turn;
+            for(int i = 0; i < rows + 1; ++i){
+                for(int j = 0; j < rows + 1; ++j){
+                    current_game_state[game_state_counter].grid_state[i][j] = grid[i][j];
+                }
+            }
+            for(int i = 0; i < ((rows / 2) * (rows / 2)); ++i){
+                current_game_state[game_state_counter].complete_box_state[i] = complete_box[i];
+            }
             print_grid(rows, cols, grid);
         }else if(player2.turn){
             printf("\nPlayer Two's turn");
@@ -174,11 +262,65 @@ void grid(int rows, int cols){
                 printf("\nAlready occupied, please enter a valid input");
                 continue;
             }
+            //check if undo input is received
+            if(x == -1 && y == -1){
+                if(game_state_counter == 0){
+                    print_grid(rows, cols, grid);
+                    printf("\nNo previous plays to undo");
+                    continue;
+                }else{
+                    game_state_counter--;
+                    player1.score = current_game_state[game_state_counter].score1;
+                    player2.score = current_game_state[game_state_counter].score2;
+                    player1.turn = current_game_state[game_state_counter].turn1;
+                    player2.turn = current_game_state[game_state_counter].turn2;
+                    for(int i = 0; i < rows + 1; ++i){
+                        for(int j = 0; j < rows + 1; ++j){
+                            grid[i][j] = current_game_state[game_state_counter].grid_state[i][j];
+                        }
+                    }
+                    for(int i = 0; i < ((rows / 2) * (rows / 2)); ++i){
+                        complete_box[i] = current_game_state[game_state_counter].complete_box_state[i];
+                    }
+                    redoable++;
+                    print_grid(rows, cols, grid);
+                    continue;
+                }
+            }
+            //check if redo input is received
+            if(x == -2 && y == -2){
+                if(!redoable){
+                    print_grid(rows, cols, grid);
+                    printf("\nNo plays registered to redo");
+                    continue;
+                }else if(redoable){
+                    game_state_counter++;
+                    player1.score = current_game_state[game_state_counter].score1;
+                    player2.score = current_game_state[game_state_counter].score2;
+                    player1.turn = current_game_state[game_state_counter].turn1;
+                    player2.turn = current_game_state[game_state_counter].turn2;
+                    for(int i = 0; i < rows + 1; ++i){
+                        for(int j = 0; j < rows + 1; ++j){
+                            grid[i][j] = current_game_state[game_state_counter].grid_state[i][j];
+                        }
+                    }
+                    for(int i = 0; i < ((rows / 2) * (rows / 2)); ++i){
+                        complete_box[i] = current_game_state[game_state_counter].complete_box_state[i];
+                    }
+                    redoable--;
+                    print_grid(rows, cols, grid);
+                    continue;
+                }
+            }
             //check if the line to be printed is horizontal or vertical
             if(x % 2 == 0 && y % 2 != 0 && x < rows && y < cols){
                 grid[x][y] = 196;
+                game_state_counter++;
+                redoable = 0;
             }else if(y % 2 == 0 && x % 2 != 0 && x < rows && y < cols){
                 grid[x][y] = 124;
+                game_state_counter++;
+                redoable = 0;
             }else{ //if the input is not suitable, the following executes
                 print_grid(rows, cols, grid);
                 printf("\nPlease, enter a valid input");
@@ -212,6 +354,18 @@ void grid(int rows, int cols){
             player1.turn = 1;
             player2.turn = 0;
             s2:
+            current_game_state[game_state_counter].score1 = player1.score;
+            current_game_state[game_state_counter].score2 = player2.score;
+            current_game_state[game_state_counter].turn1 = player1.turn;
+            current_game_state[game_state_counter].turn2 = player2.turn;
+            for(int i = 0; i < rows + 1; ++i){
+                for(int j = 0; j < rows + 1; ++j){
+                    current_game_state[game_state_counter].grid_state[i][j] = grid[i][j];
+                }
+            }
+            for(int i = 0; i < ((rows / 2) * (rows / 2)); ++i){
+                current_game_state[game_state_counter].complete_box_state[i] = complete_box[i];
+            }
             print_grid(rows, cols, grid);
         }
         if(player1.score + player2.score == (rows / 2) * (rows / 2)){
