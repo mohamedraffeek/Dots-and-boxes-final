@@ -16,7 +16,7 @@ typedef struct{
     char name[8];
     int score;
 }top_ten;
-top_ten top_ten_players[11];
+top_ten top_ten_players[20];
 
 char name[8];
 int load, winner_score;
@@ -655,7 +655,7 @@ void grid(int rows, int cols, int mode, int load){
         }
     }
     end = fopen("topTen.bin", "wb");
-    for(int i = 0; i < 11; ++i){
+    for(int i = 0; i < 20; ++i){
         fprintf(end, "%d %s ", top_ten_players[i].score, top_ten_players[i].name);
     }
     fclose(end);
