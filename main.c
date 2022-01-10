@@ -576,7 +576,7 @@ void grid(int rows, int cols, int mode, int load){
                 ai_turn = 0;
             }
         }
-        s:
+        s://updating game state
         current_game_state[game_state_counter].score1 = score1;
         current_game_state[game_state_counter].turn1 = turn1;
         current_moves_state[moves_state_counter].moves1 = moves1;
@@ -602,11 +602,11 @@ void grid(int rows, int cols, int mode, int load){
         if(remaining_moves == 0){
             game_on = 0;
         }
-    }
+    }//return to menu if the game is saved
     if(saved){
         menu();
         return ;
-    }
+    }//end game results
     if(mode == 1){
         printf(ANSI_COLOR_GREEN "\nPlayer One's score: %d\t\t\t\t\tPlayer one's moves: %d" ANSI_COLOR_RESET, score1, moves1);
         printf(ANSI_COLOR_RED "\nPlayer Two's score: %d\t\t\t\t\tPlayer Two's moves: %d" ANSI_COLOR_RESET, score2, moves2);
@@ -633,13 +633,13 @@ void grid(int rows, int cols, int mode, int load){
             printf(ANSI_COLOR_MAGENTA "\nDraw!" ANSI_COLOR_RESET);
             winner_score = score1;
         }
-    }
+    }//end game tone
     for(int i=0; i<500; i+=100){
     Beep(i,200);
     }
     for(int i=500; i>0; i-=100){
     Beep(i,200);
-    }
+    }//post game data and top ten logic
     printf("\n\nEnter your name (max 8 letters): ");
     scanf("%s", name);
     for(int i = 0; i < 10; ++i){
@@ -755,7 +755,7 @@ void difficulity(int mode){
     }
 }
 
-//main menu function (work in progress)
+//main menu function
 
 void menu(){
     system("Color 09");
@@ -765,16 +765,16 @@ void menu(){
     scanf("%d", &first_selection);
     scanf("%*[^\n]");
     switch(first_selection){
-        case 1:
+        case 1://starting a new game
             system("cls");
             mode = game_mode();
             difficulity(mode);
             break;
-        case 2:
+        case 2://loading
             system("cls");
             loadf();
             break;
-        case 3:
+        case 3://hall of fame
             system("cls");
             printf("\nName\t\tScore\n\n");
             end = fopen("topTen.bin", "rb");
@@ -791,7 +791,7 @@ void menu(){
             system("cls");
             menu();
             break;
-        case 4:
+        case 4://exit
             break;
         default:
             system("cls");
