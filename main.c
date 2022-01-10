@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
+#include <time.h>
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -11,11 +12,15 @@
 
 //global variables
 
+typedef struct{
+    char name[8];
+    int score;
+}top_ten;
+top_ten top_ten_players[11];
+
+char name[8];
 int load, winner_score;
-FILE *end1;
-FILE *end2;
-char top_ten_names[10][100], winner_name1[100], winner_name2[100];
-int top_ten_scores[10];
+FILE *end;
 
 //player info
 
@@ -177,8 +182,16 @@ void grid(int rows, int cols, int mode, int load){
     for(int i = 0; i < ((rows / 2) * (rows / 2)); ++i){
         current_game_state[0].complete_box_state[i] = complete_box[i];
     }
-    int scored = 0, game_state_counter = 0, moves_state_counter = 0, redoable = 0, saved = 0;
+    int start_time = time(NULL);
+    int scored = 0, game_state_counter = 0, moves_state_counter = 0, redoable = 0, saved = 0, minutes = 0;
     while(game_on){
+        int current_time = time(NULL);
+        int seconds = (current_time - start_time);
+        if(seconds > 59){
+            minutes++;
+            start_time = current_time;
+            seconds = 0;
+        };
         if(turn1){
             printf(ANSI_COLOR_GREEN "\n\nPlayer One's turn" ANSI_COLOR_RESET);
         }else if(turn2){
@@ -193,12 +206,14 @@ void grid(int rows, int cols, int mode, int load){
             printf(ANSI_COLOR_GREEN "\n\nPlayer One's score: %d\t\t\t\t\tPlayer one's moves: %d" ANSI_COLOR_RESET, score1, moves1);
             printf(ANSI_COLOR_RED "\nComputer's score: %d\t\t\t\t\tComputer's moves: %d" ANSI_COLOR_RESET, ai_score, ai_moves);
         }
-        printf(ANSI_COLOR_CYAN "\n\n\t\t\t\tMoves left: %d\t\t\tundo: (-1, -1)\tredo: (-2, -2)\n\t\t\t\t\t\t\t\tsave and go back to main menu: (-3, -3)\n\t\t\t\t\t\t\t\texit: (0, 0)", remaining_moves);
+        printf(ANSI_COLOR_CYAN "\n\n\t\t\t\tMoves left: %d\t\t\tundo: (-1, -1)\tredo: (-2, -2)\n\t\t\t\ttime: %02d:%02d\t\t\tsave and go back to main menu: (-3, -3)\n\t\t\t\t\t\t\t\texit: (0, 0)", remaining_moves, minutes, seconds);
         if(turn1 || turn2){
             printf(ANSI_COLOR_BLUE "\n\nDraw a line at row: " ANSI_COLOR_RESET);
             scanf("%d", &x);
+            scanf("%*[^\n]");
             printf(ANSI_COLOR_BLUE "and column: " ANSI_COLOR_RESET);
             scanf("%d", &y);
+            scanf("%*[^\n]");
         }else if(ai_turn){
             Beep(0, 500);
             // AI algorithm
@@ -297,6 +312,7 @@ void grid(int rows, int cols, int mode, int load){
             h:
             printf("\nSave at 1, 2, or 3\n");
             scanf("%d", &load);
+            scanf("%*[^\n]");
             switch(load){
                 case 1:
                     game = fopen("save1.bin", "wb");
@@ -602,6 +618,7 @@ void grid(int rows, int cols, int mode, int load){
             winner_score = score2;
         }else{
             printf(ANSI_COLOR_MAGENTA "\nDraw!" ANSI_COLOR_RESET);
+            winner_score = score1;
         }
     }else if(mode == 2){
         printf(ANSI_COLOR_GREEN "\nPlayer One's score: %d\t\t\t\t\tPlayer one's moves: %d" ANSI_COLOR_RESET, score1, moves1);
@@ -611,38 +628,37 @@ void grid(int rows, int cols, int mode, int load){
             winner_score = score1;
         }else if(score1 < ai_score){
             printf(ANSI_COLOR_RED "\nComputer wins!" ANSI_COLOR_RESET);
+            winner_score = score1;
         }else{
             printf(ANSI_COLOR_MAGENTA "\nDraw!" ANSI_COLOR_RESET);
+            winner_score = score1;
         }
     }
-    for (int i=0; i<500; i+=100){
-    Beep (i,200);
+    for(int i=0; i<500; i+=100){
+    Beep(i,200);
     }
-    for (int i=500; i>0; i-=100){
-    Beep (i,200);
+    for(int i=500; i>0; i-=100){
+    Beep(i,200);
     }
-    /*end1 = fopen("topTenNames.bin", "wb");
-    int name_length = 0;
-    if(ai_score <= score1){
-        if(winner_score > top_ten_scores[9]){
-            printf("\nEnter your name: ");
-            while(getchar() != '\0'){
-                scanf("%c", &winner_name1[name_length++]);
+    printf("\n\nEnter your name (max 8 letters): ");
+    scanf("%s", name);
+    for(int i = 0; i < 10; ++i){
+        if(winner_score > top_ten_players[i].score){
+            for(int j = 10; j > i; --j){
+                top_ten_players[j] = top_ten_players[j-1];
             }
-            for(int i = 8; i >= 0; --i){
-                if(winner_score < top_ten_scores[i]){
-                    for(int j = 0; i < name_length; ++i){
-                        top_ten_names[i + 1][j] = winner_name1[j];
-                    }
-                    break;
-                }
+            top_ten_players[i].score = winner_score;
+            for(int k = 0; k < 8; ++k){
+                top_ten_players[i].name[k] = name[k];
             }
+            break;
         }
-        for(int i = 0; i < 10; ++i){
-            fprintf(end1, "%s", top_ten_names[i]);
-        }
-        fclose(end1);
-    }*/
+    }
+    end = fopen("topTen.bin", "wb");
+    for(int i = 0; i < 11; ++i){
+        fprintf(end, "%d %s ", top_ten_players[i].score, top_ten_players[i].name);
+    }
+    fclose(end);
     system("cls");
     menu();
 }
@@ -661,6 +677,7 @@ void loadf(){
     o:
     printf("\nSave 1 (press 1)\n\nSave 2 (press 2)\n\nSave 3 (press 3)\n");
     scanf("%d", &load);
+    scanf("%*[^\n]");
     switch(load){
         case 1:
             game = fopen("save1.bin", "rb");
@@ -697,6 +714,7 @@ int game_mode(){
     k:
     printf("\n\n\n\n\n\n\n%c PVP (Press 1)\n%c PVE (Press 2)\n\n", 16, 16);
     scanf("%d", &mode);
+    scanf("%*[^\n]");
     switch(mode){
         case 1:
             system("cls");
@@ -720,6 +738,7 @@ void difficulity(int mode){
     t:
     printf("\n\n\n\n\n\n\n%c Beginner (Press 1)\n%c Expert (Press 2)\n\n", 16, 16);
     scanf("%d", &diff);
+    scanf("%*[^\n]");
     switch(diff){
         case 1:
             system("cls");
@@ -739,11 +758,12 @@ void difficulity(int mode){
 //main menu function (work in progress)
 
 void menu(){
-    system("cls");
-    printf("\n\n\n\n\n\n\n%c Start Game (Press 1)\n%c Load Game (Press 2)\n%c Top 10 Players (Press 3)\n%c Exit (Press 4)\n\n", 16, 16, 16, 16);
+    system("Color 09");
+    printf("\n\n\t\t\t\t\t\tDots and Boxes\n\n\t\t\t\t      By Mohamed Raffeek & Mostafa Khaled\n\n\n\n%c Start Game (Press 1)\n%c Load Game (Press 2)\n%c Top 10 Players (Press 3)\n%c Exit (Press 4)\n\n", 16, 16, 16, 16);
     char first_selection, difficulity_selection, mode_selection;
     int mode = 0;
     scanf("%d", &first_selection);
+    scanf("%*[^\n]");
     switch(first_selection){
         case 1:
             system("cls");
@@ -755,20 +775,21 @@ void menu(){
             loadf();
             break;
         case 3:
-            /*system("cls");
-            printf("\nName\tScore\n");
-            end1 = fopen("topTenNames.bin", "rb");
+            system("cls");
+            printf("\nName\t\tScore\n\n");
+            end = fopen("topTen.bin", "rb");
             for(int i = 0; i < 10; ++i){
-                fscanf(end1, "%s", &top_ten_names[i]);
+                fscanf(end, "%d %s ", &top_ten_players[i].score, top_ten_players[i].name);
             }
-            fclose(end1);
-            for(int i = 0; i < 10; ++i){
-                printf("%s\n", top_ten_names[i]);
+            fclose(end);
+            for(int i = 0; i < 10; i++){
+                printf("\n%s\t\t%d",top_ten_players[i].name,top_ten_players[i].score);
             }
-            printf("Enter anything to go back to main menu\n");
+            printf("\nEnter anything to go back to main menu\n");
             int foo;
             scanf("%d", &foo);
-            menu();*/
+            system("cls");
+            menu();
             break;
         case 4:
             break;
